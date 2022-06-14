@@ -34,7 +34,8 @@ public class MainActivity extends AppCompatActivity {
         this.jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
 
         //this.getPosts();
-        this.getComments();
+        //this.getComments();
+        this.createPost();
     }
 
     private void getPosts() {
@@ -98,6 +99,36 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Comment>> call, Throwable t) {
+                textViewResult.setText(t.getMessage());
+            }
+        });
+    }
+
+    private void createPost() {
+        Post post = new Post(23, "New title", "New test");
+
+        Call<Post> call = jsonPlaceHolderApi.createPost(post);
+
+        call.enqueue(new Callback<Post>() {
+            @Override
+            public void onResponse(Call<Post> call, Response<Post> response) {
+                if (!response.isSuccessful()) {
+                    textViewResult.setText("Code: " + response.code());
+                    return;
+                }
+
+                Post postResponse = response.body();
+                String content = "";
+                content += "Code: " + response.code() + "\n";
+                content += "ID: " + postResponse.getId() + "\n";
+                content += "User ID: " + postResponse.getUserId() + "\n";
+                content += "Title: " + postResponse.getTitle() + "\n";
+                content += "Text: " + postResponse.getText() + "\n\n";
+                textViewResult.setText(content);
+            }
+
+            @Override
+            public void onFailure(Call<Post> call, Throwable t) {
                 textViewResult.setText(t.getMessage());
             }
         });
