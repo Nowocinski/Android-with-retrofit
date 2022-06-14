@@ -23,6 +23,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity {
     private TextView textViewResult;
     private JsonPlaceHolderApi jsonPlaceHolderApi;
+    private WeatherForecast weatherForecast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,11 +46,53 @@ public class MainActivity extends AppCompatActivity {
 
         this.jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
 
+        // https://stackoverflow.com/questions/5528850/how-do-you-connect-localhost-in-the-android-emulator
+        // Answer: Prakash, Mar 27, 2020 at 0:54
+        // UWAGA: Dla połączenia HTTPS występuję błąd certyfikatu ssl.
+        retrofit = new Retrofit.Builder()
+                //.baseUrl("https://localhost:7084/")
+                //.baseUrl("https://127.0.0.1:7084/")
+                .baseUrl("http://10.0.2.2:5167/")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .client(okHttpClient)
+                .build();
+
+        this.weatherForecast = retrofit.create(WeatherForecast.class);
+
         //this.getPosts();
         //this.getComments();
         //this.createPost();
-        this.updatePost();
+        //this.updatePost();
         //this.deletePost();
+        this.getWeather();
+    }
+
+    private void getWeather() {
+        Call<List<Weather>> call = this.weatherForecast.getWeather();
+
+        call.enqueue(new Callback<List<Weather>>() {
+            @Override
+            public void onResponse(Call<List<Weather>> call, Response<List<Weather>> response) {
+                if (!response.isSuccessful()) {
+                    textViewResult.setText("Code: " + response.code());
+                    return;
+                }
+                List<Weather> weathers = response.body();
+                for (Weather weather : weathers) {
+                    String content = "";
+                    content += "date: " + weather.getDate() + "\n";
+                    content += "temperatureC: " + weather.getTemperatureC() + "\n";
+                    content += "temperatureF: " + weather.getTemperatureF() + "\n";
+                    content += "summary: " + weather.getSummary() + "\n\n";
+                    textViewResult.append(content);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Weather>> call, Throwable t) {
+                textViewResult.setText(t.getMessage());
+            }
+        });
     }
 
     private void getPosts() {
