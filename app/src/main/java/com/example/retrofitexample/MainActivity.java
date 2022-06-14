@@ -35,7 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
         //this.getPosts();
         //this.getComments();
-        this.createPost();
+        //this.createPost();
+        this.updatePost();
     }
 
     private void getPosts() {
@@ -112,6 +113,34 @@ public class MainActivity extends AppCompatActivity {
 
         Call<Post> call = jsonPlaceHolderApi.createPost(/*post*/ /*23, "New title", "New text"*/fields);
 
+        call.enqueue(new Callback<Post>() {
+            @Override
+            public void onResponse(Call<Post> call, Response<Post> response) {
+                if (!response.isSuccessful()) {
+                    textViewResult.setText("Code: " + response.code());
+                    return;
+                }
+
+                Post postResponse = response.body();
+                String content = "";
+                content += "Code: " + response.code() + "\n";
+                content += "ID: " + postResponse.getId() + "\n";
+                content += "User ID: " + postResponse.getUserId() + "\n";
+                content += "Title: " + postResponse.getTitle() + "\n";
+                content += "Text: " + postResponse.getText() + "\n\n";
+                textViewResult.setText(content);
+            }
+
+            @Override
+            public void onFailure(Call<Post> call, Throwable t) {
+                textViewResult.setText(t.getMessage());
+            }
+        });
+    }
+
+    public void updatePost() {
+        Post post = new Post(12, null, "New text");
+        Call<Post> call = jsonPlaceHolderApi.putPost(5, post);
         call.enqueue(new Callback<Post>() {
             @Override
             public void onResponse(Call<Post> call, Response<Post> response) {
